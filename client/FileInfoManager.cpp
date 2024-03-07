@@ -68,7 +68,6 @@ int FileInfoManager::Read(SocketInfo *svr, TransferBufferSet *buffSet, TransferB
     buff->totalBlock = buffSet->totalBlock;
     buff->id = buffSet->workId;
 
-
     buff->dataSize = readSize;
 
     buff->checkCode = checksum(buff->data, buff->dataSize);

@@ -28,6 +28,7 @@ int FileIO::Write(QINT_32 index, QINT_32 buffLen, QCHAR *buff){
     //QD_LOGD("fwrite:%d", writeSize);
     int nf = fflush(mFp);
     //QD_LOGD("fflush file %d", nf);
+    return nf;
 }
 
 int FileIO::Read(QINT_32 index, QCHAR *buff){
@@ -41,6 +42,15 @@ void FileIO::Close(){
     int res = fclose(mFp);
     QD_LOGD("res:%d", res);
 }
+
+int FileIO::getBlockSize(){
+    return mBlockSize;
+}
+
+int FileIO::getBlockTotal(){
+    return mBlockTotal;
+}
+
 
 FileIO::~FileIO(){
     fclose(mFp);

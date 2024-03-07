@@ -19,16 +19,13 @@
 #include "inc/FileIO.h"
 
 
-class ClientFile;
-
-
 // 获取保存本地文件的信息
 class FileInfoManager{
 private:
 
     FileInfo        *mInfo;
 
-    FileIO          *mFile;
+    FileIO          *mFile;      // 磁盘文件块读写
 
 public:
     FileInfoManager(const char *filePath);

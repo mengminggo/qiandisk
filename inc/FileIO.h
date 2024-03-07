@@ -43,6 +43,12 @@ public:
     */
 
     void Close();
+
+    int getBlockSize();
+
+    int getBlockTotal();
+
+
     ~FileIO();
 
 };
