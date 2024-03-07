@@ -13,7 +13,6 @@
 
 #include <errno.h>
 
-
 #include <signal.h>
 
 #include <math.h>
@@ -27,8 +26,6 @@
 #include "FileInfoManager.h"
 #include "ConnectManage.h"
 
-
-#define BUFFER_SIZE 1024
 
 #define WORK_PATH "../test/"
 
@@ -105,11 +102,11 @@ public:
             }
 
             svrFile->Send(&mainSvr, &buff);
-
+/*
             QD_LOGD("[i:%u/%u] [s:%d] [t:%d]",
                 buffSet.currentBlock,buff.currentBlock,
                 buff.dataSize,
-                buffSet.tag);
+                buffSet.tag); */
         }
 
         return 0;
