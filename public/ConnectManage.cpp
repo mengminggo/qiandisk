@@ -187,58 +187,6 @@ ServiceManager::~ServiceManager(){
 
 //#############################################################################################
 
-ServerFile::ServerFile(FileInfo *fileInfo){
-
-    mWorkId = fileInfo->workId;
-
-    mBlockSize = fileInfo->blockSize;
-    mBlockTotal = fileInfo->blockTotal;
-
-    strcpy(mFilePath, fileInfo->workPath);
-
-    QD_LOGD("id:%d,blockSize:%d,blockTotal:%d,file:%s", mWorkId, mBlockSize, mBlockTotal, mFilePath);
-
-    this->Open();
-
-}
-
-int ServerFile::Open(){
-    mFp = fopen(mFilePath, "w");
-
-    if(mFp == NULL) {
-        QD_LOGD("open %s faild!", mFilePath);
-        return -1;
-    }
-    QD_LOGD("open %s success!", mFilePath);
-
-    return 0;
-}
-void ServerFile::Write(QINT_32 index, QINT_32 buffLen, QCHAR *buff){
-    //QD_LOGD("%d %d %d", index, mBlockSize, buffLen);
-    fseek(mFp, index * mBlockSize, SEEK_SET);
-    int writeSize = fwrite(buff, 1, buffLen, mFp);
-    //QD_LOGD("fwrite:%d", writeSize);
-    int nf = fflush(mFp);
-    //QD_LOGD("fflush file %d", nf);
-}
-
-void ServerFile::Read(QINT_32 index, QCHAR *buff){
-    fseek(mFp,index * mBlockSize, SEEK_SET);
-    int rNum = fread(buff, 1, mBlockSize, mFp);
-    //printf("%d\n", rNum);
-}
-
-void ServerFile::Close(){
-    int res = fclose(mFp);
-    QD_LOGD("res:%d", res);
-}
-ServerFile::~ServerFile(){
-
-}
-
-
-//#############################################################################################
-
 ServerFileManager::ServerFileManager(){
     FUNCTION_IN;
 }
@@ -248,12 +196,12 @@ void ServerFileManager::AddWork(SocketInfo *cli, FileInfo *fileInfo){
 
     FUNCTION_IN;
     mClientList[cli->workId] = cli;
-    mFiles[cli->workId] = new ServerFile(fileInfo);
+
+    mFiles[cli->workId] = new FileIO(fileInfo->workPath, fileInfo->blockSize, fileInfo->blockTotal);
 
     mWorkIds.push_back(cli->workId);
 
 }
-
 
 void ServerFileManager::Run(){
     // 遍历 cli info， 如果有的话，创建 ServerFile 进行传输任务
@@ -262,14 +210,18 @@ void ServerFileManager::Run(){
         for(auto it = mWorkIds.begin(); it != mWorkIds.end();){
             QD_LOGD("Start Proces: %d", *it);
             SocketInfo  *cli = mClientList.at(*it);
-            ServerFile  *svrFile = mFiles.at(*it);
+
+            FileIO      *diskFile = mFiles.at(*it);
+
+            diskFile->Open("w");
+
             // 遍历 mBlockTotal
 
             TransferBufferSet   buffSet;
             TransferBuffer      buff;
 
             QUINT_64 current = 0;
-            QUINT_64 total = svrFile->mBlockTotal;
+            QUINT_64 total = diskFile->getBlockSize();
 
             for(current = 0; current < total; ){
 
@@ -294,7 +246,7 @@ void ServerFileManager::Run(){
                 }
 
                 // 写入本地
-                this->Write(svrFile, &buff);
+                this->Write(diskFile, &buff);
 
                 ++current;
             }
@@ -323,7 +275,7 @@ void ServerFileManager::Read(SocketInfo *cli, TransferBufferSet *buffSet, Transf
     int nrecv = recv(cli->fd, buff, sizeof(TransferBuffer), 0);
 }
 
-void ServerFileManager::Write(ServerFile *file, TransferBuffer *buff){
+void ServerFileManager::Write(FileIO *file, TransferBuffer *buff){
     file->Write(buff->currentBlock, buff->dataSize, buff->data);
 }
 
@@ -332,7 +284,7 @@ QUINT_64 ServerFileManager::GetTotal(int workId){
     printf("%d\n", mFiles.size());
 
    // QD_LOGD("%d", mFiles[workId]->mBlockTotal);
-    int total = mFiles[workId]->mBlockTotal;
+    int total = mFiles[workId]->getBlockTotal();
     return total;
 }
 

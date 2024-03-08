@@ -28,7 +28,8 @@ CFLAGS += -w
 SRC_FILES := \
 		$(PROJECT_PATH)/public/QUtils.cpp	\
 		$(PROJECT_PATH)/client/FileInfoManager.cpp \
-		$(PROJECT_PATH)/public/ConnectManage.cpp
+		$(PROJECT_PATH)/public/ConnectManage.cpp  \
+		$(PROJECT_PATH)/public/FileIO.cpp
 OBJ_FILE := \
 		client.cpp
 

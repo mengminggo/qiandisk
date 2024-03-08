@@ -8,7 +8,8 @@ CFLAGS := -g
 
 SRC_FILES := \
 		$(PROJECT_PATH)/public/QUtils.cpp	\
-		$(PROJECT_PATH)/public/ConnectManage.cpp
+		$(PROJECT_PATH)/public/ConnectManage.cpp \
+		$(PROJECT_PATH)/public/FileIO.cpp
 #		$(PROJECT_PATH)/public/FileManager.cpp 
 
 

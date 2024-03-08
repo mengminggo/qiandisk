@@ -1,0 +1,7 @@
+test
+a.out
+server/svr
+server/*.log
+client/cli
+client/*.log
+

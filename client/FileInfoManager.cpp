@@ -1,9 +1,7 @@
 #include "FileInfoManager.h"
 
+
 FileInfoManager::FileInfoManager(const char *filePath){
-    FUNCTION_IN;
-
-
     mInfo = new FileInfo;
 
     QCHAR  *mBasec = strdup(filePath);
@@ -26,9 +24,6 @@ FileInfoManager::FileInfoManager(const char *filePath){
 
     free(mBasec);
     // 创建文件操作
-
-    FUNCTION_OUT;
-
 }
 
 FileInfo* FileInfoManager::getFileInfo(){
@@ -51,7 +46,9 @@ int FileInfoManager::SendFileInfo(int svrFd, const char* __username){
     QD_LOGD("File: (%ld, %ld, %ld)", mInfo->size, mInfo->blockSize,mInfo->blockTotal);
 
 
-    mFile = new ClientFile(mInfo);
+    mFile = new FileIO(mInfo->full, mInfo->blockSize, mInfo->blockTotal);
+
+    mFile->Open("r");
 
     return 0;
 }
@@ -71,7 +68,6 @@ int FileInfoManager::Read(SocketInfo *svr, TransferBufferSet *buffSet, TransferB
     buff->totalBlock = buffSet->totalBlock;
     buff->id = buffSet->workId;
 
-
     buff->dataSize = readSize;
 
     buff->checkCode = checksum(buff->data, buff->dataSize);
@@ -89,7 +85,6 @@ void FileInfoManager::Write(TransferBuffer *buff){
     mFile->Write(buff->currentBlock, buff->dataSize, buff->data);
 }
 
-
 FileInfoManager::~FileInfoManager(){
 
     free(mFile);
@@ -99,60 +94,3 @@ FileInfoManager::~FileInfoManager(){
     mFile = NULL;
 
 }
-
-
-// ##############################################################################
-
-
-ClientFile::ClientFile(FileInfo *fileInfo){
-
-    mWorkId = fileInfo->workId;
-
-    mBlockSize = fileInfo->blockSize;
-    mBlockTotal = fileInfo->blockTotal;
-
-    strcpy(mWorkPath, fileInfo->full);
-
-    QD_LOGD("Size:%ld,blockSize:%d,blockTotal:%d,file:%s",
-        fileInfo->size, mBlockSize, mBlockTotal, mWorkPath);
-
-    this->Open();
-
-}
-
-int ClientFile::Open(){
-    mFp = fopen(mWorkPath, "r");
-
-    if(mFp == NULL) {
-        QD_LOGD("open %s faild!", mWorkPath);
-        return -1;
-    }
-    QD_LOGD("open %s success!", mWorkPath);
-
-    return 0;
-}
-void ClientFile::Write(QINT_32 index, QINT_32 buffLen, QCHAR *buff){
-    //QD_LOGD("%d %d %d", index, mBlockSize, buffLen);
-    fseek(mFp, index * mBlockSize, SEEK_SET);
-    int writeSize = fwrite(buff, 1, buffLen, mFp);
-    //QD_LOGD("fwrite:%d", writeSize);
-    int nf = fflush(mFp);
-    //QD_LOGD("fflush file %d", nf);
-}
-
-int ClientFile::Read(QINT_32 index, QCHAR *buff){
-    fseek(mFp,index * mBlockSize, SEEK_SET);
-    int rNum = fread(buff, 1, mBlockSize, mFp);
-    //QD_LOGD("%d\n", rNum);
-    return rNum;
-}
-
-void ClientFile::Close(){
-    int res = fclose(mFp);
-    QD_LOGD("res:%d", res);
-}
-ClientFile::~ClientFile(){
-
-}
-
-
